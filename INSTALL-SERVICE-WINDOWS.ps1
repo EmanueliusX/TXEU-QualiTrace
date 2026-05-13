@@ -31,17 +31,22 @@ if (-not $nodePath) {
 }
 Write-Host "[OK] Node.js: $(node --version)  ($nodePath)"
 
-# --- npm install ---
+# --- npm install (sare daca node_modules e deja inclus in pachet) ---
 Write-Host ""
-Write-Host "[1/3] Instalare dependinte backend..." -ForegroundColor Yellow
-Push-Location $beDir
-try {
-    & npm install --omit=dev
-    if ($LASTEXITCODE -ne 0) { throw "npm install a esuat (exit code $LASTEXITCODE)" }
-} finally {
-    Pop-Location
+$nodeModules = Join-Path $beDir "node_modules"
+if (Test-Path (Join-Path $nodeModules "better-sqlite3")) {
+    Write-Host "[1/3] Dependinte pre-instalate (node_modules inclus in pachet)" -ForegroundColor Green
+} else {
+    Write-Host "[1/3] Instalare dependinte backend..." -ForegroundColor Yellow
+    Push-Location $beDir
+    try {
+        & npm install --omit=dev
+        if ($LASTEXITCODE -ne 0) { throw "npm install a esuat (exit code $LASTEXITCODE)" }
+    } finally {
+        Pop-Location
+    }
+    Write-Host "[OK] Dependinte instalate"
 }
-Write-Host "[OK] Dependinte instalate"
 
 # --- Creeaza foldere ---
 New-Item -ItemType Directory -Path (Join-Path $beDir "logs") -Force | Out-Null
