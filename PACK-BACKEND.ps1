@@ -16,7 +16,8 @@ New-Item -ItemType Directory -Path "$tmp\backend" -Force | Out-Null
 
 # Copiaza fisierele
 Copy-Item (Join-Path $root "INSTALL-SERVICE-WINDOWS.bat") $tmp
-Write-Host "[OK] INSTALL-SERVICE-WINDOWS.bat"
+Copy-Item (Join-Path $root "INSTALL-SERVICE-WINDOWS.ps1") $tmp
+Write-Host "[OK] INSTALL-SERVICE-WINDOWS.bat + .ps1"
 
 Copy-Item (Join-Path $root "backend\package.json")        "$tmp\backend"
 Copy-Item (Join-Path $root "backend\.env.example")        "$tmp\backend"
