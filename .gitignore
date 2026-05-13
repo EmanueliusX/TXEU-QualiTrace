@@ -15,6 +15,10 @@ backend/data/*.db-wal
 .env
 .env.local
 frontend/.env.local
+# .env.example se include intentionat in repo
+
+# Logs
+backend/logs/
 
 # Logs
 *.log
