@@ -21,7 +21,8 @@ if (-not $isAdmin) {
 Write-Host "[OK] Rulare ca Administrator"
 
 # --- Verifica Node.js ---
-$nodePath = (Get-Command node -ErrorAction SilentlyContinue)?.Source
+$nodeCmd  = Get-Command node -ErrorAction SilentlyContinue
+$nodePath = if ($nodeCmd) { $nodeCmd.Source } else { $null }
 if (-not $nodePath) {
     Write-Host "[EROARE] Node.js nu este instalat!" -ForegroundColor Red
     Write-Host "        Descarca de la: https://nodejs.org  (versiunea LTS)"
