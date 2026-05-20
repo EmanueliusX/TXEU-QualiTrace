@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
 const { getDb } = require('./database');
 
 const authRoutes = require('./routes/auth');
@@ -29,6 +31,13 @@ app.use('/api/reports', reportsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+
+// Serve static frontend (factory floor access via http://server:3001)
+const publicPath = path.join(__dirname, '..', 'public');
+if (fs.existsSync(publicPath)) {
+  app.use(express.static(publicPath));
+  app.get('*', (req, res) => res.sendFile(path.join(publicPath, 'index.html')));
+}
 
 // Global error handler
 app.use((err, req, res, next) => {

@@ -28,6 +28,21 @@ Write-Host "[OK] backend/package.json, .env.example, ecosystem.config.js"
 Copy-Item (Join-Path $beDir "src") "$tmp\backend" -Recurse
 Write-Host "[OK] backend/src/"
 
+# --- Build frontend cu VITE_API_URL gol (foloseste /api relativ - servit de Express) ---
+Write-Host "[..] Build frontend (VITE_API_URL gol pentru servire locala)..." -ForegroundColor Yellow
+$feDir      = Join-Path $root "frontend"
+$envProd    = Join-Path $feDir ".env.production"
+$origContent = Get-Content $envProd -Raw
+$localContent = $origContent -replace '(?m)^VITE_API_URL=.*', 'VITE_API_URL='
+Set-Content $envProd $localContent -NoNewline
+Push-Location $feDir
+& npm run build
+if ($LASTEXITCODE -ne 0) { Pop-Location; Set-Content $envProd $origContent -NoNewline; throw "Frontend build a esuat" }
+Pop-Location
+Set-Content $envProd $origContent -NoNewline
+Copy-Item (Join-Path $feDir "dist") "$tmp\backend\public" -Recurse
+Write-Host "[OK] frontend/dist copiat ca backend/public/"
+
 # --- npm install in folderul TEMP (nu in workspace!) ---
 # Root-ul are workspaces config, asa ca npm hoisteaza la root si nu in backend/
 # Instaland in temp/ (fara workspace config) obtinem un node_modules portabil
