@@ -11,6 +11,7 @@ import OperatorsAdmin from './pages/admin/OperatorsAdmin';
 import OperationsAdmin from './pages/admin/OperationsAdmin';
 import TemplatesAdmin from './pages/admin/TemplatesAdmin';
 import ReportsAdmin from './pages/admin/ReportsAdmin';
+import CapabilityAdmin from './pages/admin/CapabilityAdmin';
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const { isAdmin, isQualityAdmin, initialized } = useAuth();
@@ -41,6 +42,7 @@ export default function App() {
             <Route path="operations" element={<OperationsAdmin />} />
             <Route path="users" element={<AdminOnlyRoute><OperatorsAdmin /></AdminOnlyRoute>} />
             <Route path="reports" element={<ReportsAdmin />} />
+            <Route path="capability" element={<CapabilityAdmin />} />
             {/* legacy */}
             <Route path="fields" element={<Navigate to="/admin/templates" replace />} />
             <Route path="operators" element={<AdminOnlyRoute><OperatorsAdmin /></AdminOnlyRoute>} />

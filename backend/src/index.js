@@ -11,6 +11,7 @@ const operationsRoutes = require('./routes/operations');
 const fieldsRoutes = require('./routes/fields');
 const inspectionsRoutes = require('./routes/inspections');
 const reportsRoutes = require('./routes/reports');
+const capabilityRoutes = require('./routes/capability');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -28,6 +29,7 @@ app.use('/api/operations', operationsRoutes);
 app.use('/api/fields', fieldsRoutes);
 app.use('/api/inspections', inspectionsRoutes);
 app.use('/api/reports', reportsRoutes);
+app.use('/api/capability', capabilityRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));

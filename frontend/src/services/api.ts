@@ -80,4 +80,16 @@ export const reportsApi = {
   deleteInspection: (id: number) => api.delete(`/reports/inspections/${id}`).then(r => r.data),
 };
 
+// Capability
+export const capabilityApi = {
+  listConfigs: () => api.get('/capability/configs').then(r => r.data),
+  getConfig: (part_number: string, operation_id: number) =>
+    api.get('/capability/config', { params: { part_number, operation_id } }).then(r => r.data),
+  saveConfig: (data: { part_number: string; operation_id: number; samples_per_lot: number; lots_required: number; enabled?: boolean }) =>
+    api.post('/capability/config', data).then(r => r.data),
+  removeConfig: (id: number) => api.delete(`/capability/config/${id}`).then(r => r.data),
+  getStudy: (part_number: string, operation_id: number) =>
+    api.get('/capability/study', { params: { part_number, operation_id } }).then(r => r.data),
+};
+
 export default api;

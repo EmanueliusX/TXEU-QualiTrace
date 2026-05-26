@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, NavLink, useNavigate, Outlet } from 'react-router-dom';
-import { Users, Wrench, ListChecks, BarChart3, LogOut, Shield } from 'lucide-react';
+import { Users, Wrench, ListChecks, BarChart3, LogOut, Shield, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ROLE_LABELS } from '../types';
 
@@ -44,6 +44,11 @@ export default function AdminLayout() {
           {canManageTemplates && (
             <NavLink to="/admin/reports" className={navClass}>
               <BarChart3 className="w-5 h-5" /> Rapoarte
+            </NavLink>
+          )}
+          {canManageTemplates && (
+            <NavLink to="/admin/capability" className={navClass}>
+              <TrendingUp className="w-5 h-5" /> Capabilități
             </NavLink>
           )}
         </nav>

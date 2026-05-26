@@ -101,3 +101,62 @@ export const ROLE_BADGE_PREFIX: Record<UserRole, string> = {
   quality_admin: 'QA',
   auditor: 'AUD',
 };
+
+export interface CapabilityConfig {
+  id: number;
+  part_number: string;
+  operation_id: number;
+  operation_code?: string;
+  operation_name?: string;
+  samples_per_lot: number;
+  lots_required: number;
+  enabled: number;
+  updated_at?: string;
+}
+
+export interface CapabilityLotStatus {
+  job_number: string;
+  sample_count: number;
+  target: number;
+  complete: boolean;
+  latest_at: string;
+}
+
+export interface CapabilityFieldResult {
+  field: {
+    id: number;
+    name: string;
+    unit: string;
+    nominal_value?: number;
+    min_value: number;
+    max_value: number;
+  };
+  ok: boolean;
+  reason?: string;
+  n?: number;
+  subgroup_count?: number;
+  subgroup_size?: number;
+  xbar?: number;
+  sigma_overall?: number;
+  sigma_within?: number;
+  lsl?: number;
+  usl?: number;
+  cp?: number | null;
+  cpk?: number | null;
+  pp?: number | null;
+  ppk?: number | null;
+  min?: number;
+  max?: number;
+}
+
+export interface CapabilityStudy {
+  configured: boolean;
+  config?: CapabilityConfig;
+  fields_count?: number;
+  lots?: CapabilityLotStatus[];
+  complete_lots?: number;
+  lots_required?: number;
+  samples_per_lot?: number;
+  ready?: boolean;
+  results?: CapabilityFieldResult[];
+}

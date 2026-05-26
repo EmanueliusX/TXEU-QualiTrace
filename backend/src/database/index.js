@@ -106,6 +106,20 @@ function initSchema() {
       FOREIGN KEY (inspection_id) REFERENCES inspections(id),
       FOREIGN KEY (field_id) REFERENCES measurement_fields(id)
     );
+
+    CREATE TABLE IF NOT EXISTS capability_configs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      part_number TEXT NOT NULL,
+      operation_id INTEGER NOT NULL,
+      samples_per_lot INTEGER NOT NULL DEFAULT 5,
+      lots_required INTEGER NOT NULL DEFAULT 5,
+      enabled INTEGER DEFAULT 1,
+      created_by INTEGER,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(part_number, operation_id),
+      FOREIGN KEY (operation_id) REFERENCES operations(id),
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    );
   `);
 
   // Seed initial data if DB is empty
