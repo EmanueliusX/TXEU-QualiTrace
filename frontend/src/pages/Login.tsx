@@ -81,7 +81,8 @@ export default function Login() {
     try {
       const user = await login(badgeId, pin);
       toast.success(`Bun venit, ${user.name}`);
-      navigate('/admin');
+      if (user.role === 'quality_admin') navigate('/admin/templates');
+      else navigate('/admin');
     } catch (err: any) {
       toast.error(err.response?.data?.error || 'PIN incorect');
       setPin('');

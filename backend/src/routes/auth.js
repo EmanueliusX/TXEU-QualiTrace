@@ -7,8 +7,7 @@ const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'qualitrace-secret';
 
 // Login:
-//   admin        → badge + PIN (obligatoriu)
-//   quality_admin → badge only (fără PIN)
+//   admin + quality_admin → badge + PIN (obligatoriu)
 router.post('/login', (req, res) => {
   const { badge_id, pin } = req.body;
   if (!badge_id) {
@@ -19,12 +18,13 @@ router.post('/login', (req, res) => {
   if (!user || (user.role !== 'admin' && user.role !== 'quality_admin')) {
     return res.status(401).json({ error: 'Badge necunoscut sau acces refuzat' });
   }
-  // admin needs PIN always; quality_admin uses badge-only
-  if (user.role === 'admin') {
-    if (!pin) return res.status(400).json({ error: 'PIN obligatoriu pentru administrator' });
-    if (!user.pin_hash || !bcrypt.compareSync(pin, user.pin_hash)) {
-      return res.status(401).json({ error: 'PIN incorect' });
-    }
+  // Both admin and quality_admin require PIN
+  if (!pin) return res.status(400).json({ error: 'PIN obligatoriu' });
+  if (!user.pin_hash) {
+    return res.status(401).json({ error: 'PIN nesetat — contactați administratorul de sistem' });
+  }
+  if (!bcrypt.compareSync(pin, user.pin_hash)) {
+    return res.status(401).json({ error: 'PIN incorect' });
   }
   const token = jwt.sign(
     { id: user.id, name: user.name, badge_id: user.badge_id, role: user.role },

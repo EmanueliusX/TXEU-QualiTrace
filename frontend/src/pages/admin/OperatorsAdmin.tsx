@@ -54,8 +54,8 @@ export default function OperatorsAdmin() {
 
   const save = async () => {
     if (!form.name || !form.badge_id) { toast.error('Nume și Badge ID sunt obligatorii'); return; }
-    if (form.role === 'admin' && !editUser && !form.pin) {
-      toast.error('PIN obligatoriu pentru administratorul sistem'); return;
+    if ((form.role === 'admin' || form.role === 'quality_admin') && !editUser && !form.pin) {
+      toast.error('PIN obligatoriu pentru administrator'); return;
     }
     setSaving(true);
     try {
