@@ -104,11 +104,23 @@ router.put('/:id', requireQualityAdminOrAdmin, (req, res) => {
   res.json(db.prepare('SELECT * FROM measurement_fields WHERE id = ?').get(req.params.id));
 });
 
-// DELETE /api/fields/:id (soft)
+// DELETE /api/fields/:id
+// Hard-delete când nu există măsurători ce îl referențiază. Altfel soft-delete (active=0).
 router.delete('/:id', requireQualityAdminOrAdmin, (req, res) => {
   const db = getDb();
-  db.prepare('UPDATE measurement_fields SET active = 0 WHERE id = ?').run(req.params.id);
-  res.json({ success: true });
+  const id = Number(req.params.id);
+  const field = db.prepare('SELECT * FROM measurement_fields WHERE id = ?').get(id);
+  if (!field) return res.status(404).json({ error: 'Câmp negăsit' });
+
+  const measCount = db.prepare('SELECT COUNT(*) as cnt FROM measurements WHERE field_id = ?').get(id).cnt;
+
+  if (measCount > 0) {
+    db.prepare('UPDATE measurement_fields SET active = 0 WHERE id = ?').run(id);
+    return res.json({ success: true, mode: 'soft', reason: `${measCount} măsurători existente` });
+  }
+
+  db.prepare('DELETE FROM measurement_fields WHERE id = ?').run(id);
+  res.json({ success: true, mode: 'hard' });
 });
 
 // POST /api/fields/copy  — duplicate fields from one (part, op) to another part

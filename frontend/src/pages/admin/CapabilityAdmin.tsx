@@ -118,7 +118,7 @@ export default function CapabilityAdmin() {
             <TrendingUp className="w-7 h-7 text-blue-600" /> Studii de Capabilitate
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Cp / Cpk (capabilitate proces, scurt termen) și Pp / Ppk (performanță, lung termen)
+            Cp / Cpk (capabilitate proces, termen scurt) și Pp / Ppk (performanță, termen lung)
           </p>
         </div>
         <button

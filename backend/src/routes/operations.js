@@ -67,10 +67,29 @@ router.put('/:id', requireQualityAdminOrAdmin, (req, res) => {
 });
 
 // DELETE /api/operations/:id
+// Hard-delete când nu există inspecții ce referențiază operația
+// (cascade: șterge și measurement_fields + capability_configs aferente).
+// Soft-delete (active=0) când există inspecții existente — pentru păstrarea istoricului.
 router.delete('/:id', requireQualityAdminOrAdmin, (req, res) => {
   const db = getDb();
-  db.prepare('UPDATE operations SET active = 0 WHERE id = ?').run(req.params.id);
-  res.json({ success: true });
+  const id = Number(req.params.id);
+  const op = db.prepare('SELECT * FROM operations WHERE id = ?').get(id);
+  if (!op) return res.status(404).json({ error: 'Operație negăsită' });
+
+  const insCount = db.prepare('SELECT COUNT(*) as cnt FROM inspections WHERE operation_id = ?').get(id).cnt;
+
+  if (insCount > 0) {
+    db.prepare('UPDATE operations SET active = 0 WHERE id = ?').run(id);
+    return res.json({ success: true, mode: 'soft', reason: `${insCount} inspecții existente` });
+  }
+
+  const tx = db.transaction(() => {
+    db.prepare('DELETE FROM capability_configs WHERE operation_id = ?').run(id);
+    db.prepare('DELETE FROM measurement_fields WHERE operation_id = ?').run(id);
+    db.prepare('DELETE FROM operations WHERE id = ?').run(id);
+  });
+  tx();
+  res.json({ success: true, mode: 'hard' });
 });
 
 module.exports = router;
