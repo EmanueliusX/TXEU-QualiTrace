@@ -148,7 +148,7 @@ router.get('/study', requireQualityAdminOrAdmin, (req, res) => {
     SELECT id, job_number, created_at
     FROM inspections
     WHERE part_number = ? AND operation_id = ? AND status = 'pass'
-    ORDER BY created_at DESC
+    ORDER BY julianday(created_at) DESC, id DESC
   `).all(pn, operation_id);
 
   // Grupare pe loturi (job_number) - cele mai recente lots_required loturi cu samples_per_lot măsurători
@@ -169,8 +169,6 @@ router.get('/study', requireQualityAdminOrAdmin, (req, res) => {
       latest_at: list[0].created_at,
     });
   }
-  lotStats.sort((a, b) => (a.latest_at < b.latest_at ? 1 : -1));
-
   const completeLots = lotStats.filter(l => l.complete).slice(0, config.lots_required);
   const ready = completeLots.length >= config.lots_required;
 
@@ -183,9 +181,8 @@ router.get('/study', requireQualityAdminOrAdmin, (req, res) => {
     const allValues = [];
     for (const lot of completeLots) {
       const lotInspections = byLot.get(lot.job_number)
-        .slice() // copy
-        .sort((a, b) => (a.created_at < b.created_at ? -1 : 1))
-        .slice(0, config.samples_per_lot);
+        .slice(-config.samples_per_lot)
+        .reverse();
       const vals = db.prepare(`
         SELECT value FROM measurements
         WHERE field_id = ? AND value IS NOT NULL AND inspection_id IN (${lotInspections.map(() => '?').join(',')})

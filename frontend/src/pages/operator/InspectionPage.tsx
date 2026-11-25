@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { isAxiosError } from 'axios';
 import {
   CheckCircle2, XCircle, ScanLine, RotateCcw, ChevronLeft,
   Loader2, BadgeCheck, AlertTriangle, Package, Layers, Wrench
@@ -12,6 +13,10 @@ import { useSerial } from '../../hooks/useSerial';
 import { useScannerOnly } from '../../hooks/useScannerOnly';
 import toast from 'react-hot-toast';
 
+function isInspectionUnavailable(error: unknown) {
+  return isAxiosError<{ code?: string }>(error) && error.response?.data?.code === 'INSPECTION_UNAVAILABLE';
+}
+
 export default function InspectionPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -23,7 +28,16 @@ export default function InspectionPage() {
   const [validating, setValidating] = useState(false);
   const [validated, setValidated] = useState(false);
   const [validatedBy, setValidatedBy] = useState('');
+  const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const badgeRef = useRef<HTMLInputElement>(null);
+  const restarting = useRef(false);
+
+  const restartInspection = useCallback((message = 'Inspecția a expirat. Porniți o inspecție nouă.') => {
+    if (restarting.current) return;
+    restarting.current = true;
+    toast.error(message);
+    navigate('/', { replace: true });
+  }, [navigate]);
 
   // Ref to avoid stale closure in confirmMeasurement
   const sessionRef = useRef<InspectionSession | null>(null);
@@ -49,19 +63,29 @@ export default function InspectionPage() {
 
   useEffect(() => {
     if (!id) return;
+    let cancelled = false;
     inspectionsApi.get(parseInt(id)).then(data => {
+      if (cancelled) return;
       setSession(data);
+      setExpiresAt(data.expires_in_ms == null ? null : performance.now() + data.expires_in_ms);
       // Set first pending field as active and focus its input
       const firstPending = data.measurements.find((m: Measurement) => m.status === 'pending');
       if (firstPending) {
         setActiveFieldId(firstPending.field_id);
         setTimeout(() => fieldInputRefs.current[firstPending.field_id]?.focus(), 150);
       }
-    }).catch(() => {
-      toast.error('Inspecție negăsită');
-      navigate('/');
-    }).finally(() => setLoading(false));
-  }, [id]);
+    }).catch(error => {
+      if (cancelled) return;
+      restartInspection(isInspectionUnavailable(error) ? error.response?.data?.error : 'Inspecție negăsită');
+    }).finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [id, restartInspection]);
+
+  useEffect(() => {
+    if (expiresAt === null || validating || validated) return;
+    const timer = window.setTimeout(() => restartInspection(), Math.max(0, expiresAt - performance.now()));
+    return () => window.clearTimeout(timer);
+  }, [expiresAt, validating, validated, restartInspection]);
 
   const confirmMeasurement = async (fieldId: number, valueOverride?: number) => {
     if (!id || !sessionRef.current) return;
@@ -101,12 +125,13 @@ export default function InspectionPage() {
         }
       }
     } catch (err: any) {
+      if (isInspectionUnavailable(err)) return restartInspection(err.response?.data?.error);
       toast.error(err.response?.data?.error || 'Eroare la salvarea măsurătorii');
     }
   };
 
   const handleValidate = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key !== 'Enter') return;
+    if (e.key !== 'Enter' || validating) return;
     const badge = (e.target as HTMLInputElement).value.trim().toUpperCase();
     if (!badge || !id) return;
     setValidating(true);
@@ -116,6 +141,7 @@ export default function InspectionPage() {
       setValidatedBy(res.validated_by);
       toast.success('Inspecție validată cu succes!');
     } catch (err: any) {
+      if (isInspectionUnavailable(err)) return restartInspection(err.response?.data?.error);
       toast.error(err.response?.data?.error || 'Validare eșuată');
       setBadgeInput('');
     } finally {

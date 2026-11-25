@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { reportsApi } from '../../services/api';
 import { ReportStats } from '../../types';
+import { formatInspectionTime } from '../../utils/inspectionTime';
 import { CheckCircle2, XCircle, Clock, TrendingUp, BarChart3, Activity } from 'lucide-react';
 
 export default function AdminHome() {
@@ -97,7 +98,7 @@ export default function AdminHome() {
                   <div className="text-xs text-slate-400 truncate">{insp.operation_name} {insp.operator_name && `· ${insp.operator_name}`}</div>
                 </div>
                 <div className="text-xs text-slate-400 flex-shrink-0">
-                  {new Date(insp.created_at).toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                  {formatInspectionTime(insp.created_at, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                 </div>
               </div>
             ))}

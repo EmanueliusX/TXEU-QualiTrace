@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
+import { formatInspectionTime } from '../../utils/inspectionTime';
 
 const statusLabel: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
   pass: { label: 'Aprobat', className: 'badge-pass', icon: <CheckCircle2 size={11} /> },
@@ -172,7 +173,7 @@ export default function ReportsAdmin() {
                   </td>
                   <td className="px-5 py-3.5 text-sm text-slate-600">{insp.operator_name ?? insp.operator_badge ?? '—'}</td>
                   <td className="px-5 py-3.5 text-xs text-slate-500">
-                    {new Date(insp.created_at).toLocaleDateString('ro-RO', {
+                    {formatInspectionTime(insp.created_at, {
                       day: '2-digit', month: '2-digit', year: 'numeric',
                       hour: '2-digit', minute: '2-digit'
                     })}
@@ -242,9 +243,9 @@ export default function ReportsAdmin() {
                     ['Operație', `${detail.inspection.operation_code} — ${detail.inspection.operation_name}`],
                     ['Operator', detail.inspection.operator_name ?? detail.inspection.operator_badge ?? '—'],
                     ['Status', statusLabel[detail.inspection.status]?.label ?? detail.inspection.status],
-                    ['Data', new Date(detail.inspection.created_at).toLocaleString('ro-RO')],
+                    ['Data', formatInspectionTime(detail.inspection.created_at)],
                     detail.inspection.validated_by_name && ['Validat de', detail.inspection.validated_by_name],
-                    detail.inspection.validated_at && ['Validat la', new Date(detail.inspection.validated_at).toLocaleString('ro-RO')],
+                    detail.inspection.validated_at && ['Validat la', formatInspectionTime(detail.inspection.validated_at)],
                   ].filter(Boolean).map(([k, v]) => (
                     <div key={k as string} className="bg-slate-50 rounded-xl px-4 py-3">
                       <div className="text-xs text-slate-500 mb-0.5">{k as string}</div>

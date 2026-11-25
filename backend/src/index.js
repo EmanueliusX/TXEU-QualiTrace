@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const { getDb } = require('./database');
+const { scheduleInspectionCleanup } = require('./inspectionTime');
 
 const authRoutes = require('./routes/auth');
 const usersRoutes = require('./routes/users');
@@ -19,8 +20,7 @@ const PORT = process.env.PORT || 3001;
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
-// Initialize DB
-getDb();
+scheduleInspectionCleanup(getDb());
 
 // Routes
 app.use('/api/auth', authRoutes);

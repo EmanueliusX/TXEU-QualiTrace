@@ -2,6 +2,7 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
+const { localInspectionDate } = require('../inspectionTime');
 
 const DATA_DIR = process.env.DB_DATA_DIR || path.join(__dirname, '../../data');
 const DB_PATH = path.join(DATA_DIR, 'qualitrace.db');
@@ -14,6 +15,7 @@ function getDb() {
     db = new Database(DB_PATH);
     db.pragma('journal_mode = WAL');
     db.pragma('foreign_keys = ON');
+    db.function('inspection_local_date', { deterministic: true }, localInspectionDate);
     runMigrations();
     initSchema();
   }
@@ -120,6 +122,12 @@ function initSchema() {
       FOREIGN KEY (operation_id) REFERENCES operations(id),
       FOREIGN KEY (created_by) REFERENCES users(id)
     );
+  `);
+
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_open_inspections_created_at
+      ON inspections(julianday(created_at)) WHERE status = 'in_progress';
+    CREATE INDEX IF NOT EXISTS idx_measurements_inspection ON measurements(inspection_id);
   `);
 
   // Seed initial data if DB is empty

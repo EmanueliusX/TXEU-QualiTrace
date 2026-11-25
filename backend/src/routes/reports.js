@@ -1,5 +1,6 @@
 const express = require('express');
 const { getDb } = require('../database');
+const { purgeExpiredInspections } = require('../inspectionTime');
 const { requireQualityAdminOrAdmin, requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
@@ -8,6 +9,7 @@ const router = express.Router();
 router.get('/inspections', requireQualityAdminOrAdmin, (req, res) => {
   const { from, to, status, operation_id, limit = 100, offset = 0 } = req.query;
   const db = getDb();
+  purgeExpiredInspections(db);
 
   let query = `
     SELECT
@@ -24,12 +26,12 @@ router.get('/inspections', requireQualityAdminOrAdmin, (req, res) => {
   `;
   const params = [];
 
-  if (from) { query += ' AND date(i.created_at) >= ?'; params.push(from); }
-  if (to) { query += ' AND date(i.created_at) <= ?'; params.push(to); }
+  if (from) { query += ' AND inspection_local_date(i.created_at) >= ?'; params.push(from); }
+  if (to) { query += ' AND inspection_local_date(i.created_at) <= ?'; params.push(to); }
   if (status) { query += ' AND i.status = ?'; params.push(status); }
   if (operation_id) { query += ' AND i.operation_id = ?'; params.push(operation_id); }
 
-  query += ' ORDER BY i.created_at DESC LIMIT ? OFFSET ?';
+  query += ' ORDER BY julianday(i.created_at) DESC, i.id DESC LIMIT ? OFFSET ?';
   params.push(parseInt(limit), parseInt(offset));
 
   const rows = db.prepare(query).all(...params);
@@ -50,6 +52,7 @@ router.get('/inspections', requireQualityAdminOrAdmin, (req, res) => {
 // GET /api/reports/inspections/:id — full detail
 router.get('/inspections/:id', requireQualityAdminOrAdmin, (req, res) => {
   const db = getDb();
+  purgeExpiredInspections(db);
   const inspection = db.prepare(`
     SELECT i.*, o.name as operation_name, o.code as operation_code,
       u.name as operator_name, v.name as validated_by_name

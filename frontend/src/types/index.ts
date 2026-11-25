@@ -81,6 +81,7 @@ export interface InspectionSession {
   inspection: Inspection;
   measurements: Measurement[];
   operation: Operation;
+  expires_in_ms?: number | null;
 }
 
 export interface ReportStats {

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { InspectionSession } from '../types';
 
 const api = axios.create({
   baseURL: (import.meta.env.VITE_API_URL as string) || '/api',
@@ -65,7 +66,7 @@ export const fieldsApi = {
 export const inspectionsApi = {
   start: (data: { job_number: string; part_number: string; operation_id: number; operator_badge?: string }) =>
     api.post('/inspections', data).then(r => r.data),
-  get: (id: number) => api.get(`/inspections/${id}`).then(r => r.data),
+  get: (id: number) => api.get<InspectionSession>(`/inspections/${id}`).then(r => r.data),
   measure: (id: number, field_id: number, value: number) =>
     api.put(`/inspections/${id}/measure`, { field_id, value }).then(r => r.data),
   validate: (id: number, badge_id: string) =>
